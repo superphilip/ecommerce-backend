@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -14,19 +8,156 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserStatus {
+  PENDING
+  ACTIVE
+  BLOCKED
+  DEACTIVATED
+}
+
 model User {
-  id                  Int       @id @default(autoincrement())
-  firstname           String
-  lastname            String
-  username            String
-  email               String    @unique
-  phone               String    
-  image               String?    
-  password            String    
-  notificationToken   String?   
-  estado              Boolean   @default(true)
+  id                  Int         @id @default(autoincrement())
+  name                String
+  lastName            String
+  email               String      @unique
+  phone               String
+  image               String?
+  password            String
+  status              UserStatus  @default(PENDING)
+  sessionRevokedAt    DateTime    @default(now())
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  sessions            Session[]
+  roles               UserHasRole[]
+  passwordHistory     PasswordHistory[]
+  emailActionTokens   EmailActionToken[]
+  accountActions      AccountAction[]
+
+  @@map("users")
+}
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  description String
+  image       String?   @db.VarChar(255)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  @@map("categories")
+  
+}
+
+model Session {
+  id              Int       @id @default(autoincrement())
+  userId          Int
+  jwtId           String    @unique @db.VarChar(255)
+  deviceId        String?   @db.VarChar(255)
+  deviceType      String?
+  ipAddress       String?
+  location        String?
+  lastAccessedAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_sessions")
+}
+
+model PasswordHistory {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  hash      String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_history")
+}
+
+model Permission {
+  id                  String      @id
+  name                String      @unique @db.VarChar(50)
+  description         String?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  roles               RoleHasPermission[]
+  @@map("permissions")
+}
+
+model Role {
+  id                  String    @id
+  name                String    @unique @db.VarChar(50)
+  image               String    @db.VarChar(255)
+  route               String    @db.VarChar(255)
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
-  @@map("users")
+  users               UserHasRole[]
+  permissions         RoleHasPermission[]
+  @@map("roles")
+}
+
+model UserHasRole {
+  idUser Int
+  idRole String
+
+  user User @relation(fields: [idUser], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  role Role @relation(fields: [idRole], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([idUser, idRole])
+  @@map("users_has_roles")
+}
+
+model RoleHasPermission {
+  idRole              String
+  idPermission        String
+
+  role                Role        @relation(fields: [idRole], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  permission          Permission  @relation(fields: [idPermission], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([idRole, idPermission])
+  @@map("roles_has_permissions")
+}
+
+enum EmailActionType {
+  CONFIRM_NEW_EMAIL
+  REVERT_EMAIL
+  BLOCK_ACCOUNT
+  PASSWORD_RESET
+}
+
+model EmailActionToken {
+  id          String          @id @default(uuid())
+  userId      Int
+  action      EmailActionType
+  oldEmail    String?
+  newEmail    String?
+  tokenHash   String
+  failedAttempts Int         @default(0)
+  createdAt   DateTime        @default(now())
+  expiresAt   DateTime
+  consumedAt  DateTime?
+  meta        Json?
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([action])
+  @@map("email_action_tokens")
+}
+
+model AccountAction {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  action    String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("account_actions")
 }

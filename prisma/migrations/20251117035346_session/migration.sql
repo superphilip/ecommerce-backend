@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "users" ADD COLUMN     "sessionRevokedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;

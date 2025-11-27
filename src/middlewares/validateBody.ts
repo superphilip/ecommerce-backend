@@ -6,7 +6,12 @@ export const validateBody = (schema: z.ZodTypeAny) => {
         const result = schema.safeParse(req.body);
         if (!result.success) {
             const messages = result.error.issues.map((issue) => issue.message);
-            return res.status(400).json({message: messages});
+            return res.status(400).json({
+                message: messages.length === 1 ? messages[0] : messages,
+                statusCode: 400
+            });
         }
+        req.body = result.data;
+        next();
     }
 }
