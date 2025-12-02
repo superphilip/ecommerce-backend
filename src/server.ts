@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import usersRouter from './routes/users.routes.js';
 import authRouter from './routes/auth.routes.js';
 import categoryRouter from './routes/category.routes.js';
+import productRouter from './routes/product.routes.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -24,6 +25,7 @@ app.use(express.json());
 app.use('/users', usersRouter);
 app.use('/auth', authRouter);
 app.use('/categories', categoryRouter);
+app.use('/products', productRouter);
 
 
 app.use('/uploads', express.static(path.join(__dirname, '../public/uploads'))),

@@ -4,7 +4,6 @@ import { AppError } from '../utils/AppError';
 import path, { dirname } from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
-import { update } from './auth.service';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

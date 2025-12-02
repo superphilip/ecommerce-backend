@@ -11,10 +11,14 @@ import { fetchUserPermissions, hashedPassword, isPasswordValid } from "../utils/
 import { ActiveSession, ChangeEmailInput, ChangePasswordInput, ConfirmationInput, ConfirmationSchema, CreateUserInput, ForgotPasswordInput, ForgotPasswordSchema, ResendTokenInput, ResendTokenSchema, ResetPasswordInput, ResetPasswordSchema, UpdateUserInput } from "../validators/user.validator.js";
 import type { Request as ExpressRequest } from 'express';
 import { compareToken, generateRawToken, hashToken } from "../utils/Token.js";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
 
 const MAX_CANDIDATES_SEARCH = parseInt(process.env.MAX_CANDIDATES_SEARCH ?? '10', 10);
 const MAX_ATTEMPTS = parseInt(process.env.MAX_ATTEMPTS ?? '5', 5);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 
 export const register = async (data: CreateUserInput) => {
@@ -99,7 +103,7 @@ export const update = async (id: number, data: UpdateUserInput, file?: Express.M
 
     let imagePath = user.image;
     if (file) {
-        imagePath = `/uploads/users/${id}/${file.filename}`;
+        imagePath = `/uploads/auth/${id}/${file.filename}`;
     }
 
     const updateUser = await prisma.user.update({

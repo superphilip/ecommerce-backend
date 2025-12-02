@@ -6,12 +6,15 @@ import fs from 'fs';
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         let uploadPath = "";
-        if(req.baseUrl.includes("users")) {
+        if(req.baseUrl.includes("auth")) {
             const idUser = req.params.id;
-            uploadPath = path.join(__dirname, `../../../public/uploads/users/${idUser}`);
+            uploadPath = path.join(__dirname, `../../../public/uploads/auth/${idUser}`);
         }
         else if(req.baseUrl.includes("categories")) {
             uploadPath = path.join(__dirname, `../../../public/uploads/categories`);
+        } 
+        else if(req.baseUrl.includes("products")) {
+            uploadPath = path.join(__dirname, `../../../public/uploads/products`);
         }
         else {
             uploadPath = path.join(__dirname, `../../../public/uploads/others`);
